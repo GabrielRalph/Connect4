@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class = "loader"> 
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+</body>
+<style>
+    .loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        gap: 3vmin;
+    }
+    .loader div {
+        width: 5vmin;
+        height: 5vmin;
+        aspect-ratio: 1;
+        border-radius: 10vmin;
+        background-color: rgb(211, 28, 28);
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31.256 37.716"><path d="M16.826,0h9.168v22.505h5.262v7.293h-5.262v7.918h-8.595v-7.918H0v-7.293S16.826,0,16.826,0ZM17.4,10.68l-8.804,11.825h8.804v-11.825Z" fill="%230005"/></svg>');
+        background-size: 50% 50%;
+        background-repeat: no-repeat;
+        background-position: center;
+        animation: bounce 1.5s infinite;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+   
+    .loader div:nth-child(1) {
+        animation-delay: 0s;
+    }
+    .loader div:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+    .loader div:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+    .loader div:nth-child(4) {
+        animation-delay: 0.45s;
+    }
+
+    .loader div:nth-child(2n) {
+        background-color: rgb(250, 191, 14);
+       
+
+    }
+    @keyframes bounce {
+        0%{
+            transform: translateY(-150%);
+            animation-timing-function: cubic-bezier(0.7, 0, 1, 1)
+        }
+        50%{
+            transform: translateY(150%);
+            animation-timing-function: cubic-bezier(0,0, .3, 1)
+        }
+        100%{
+            transform: translateY(-150%);
+        }
+    } 
+
+
+</style>
+</html>
