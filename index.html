@@ -128,14 +128,17 @@
     const gameManager = document.getElementById("game-manager");
     await gameManager.load();
     if (window.SquidlyAPI) {
-        SquidlyAPI.firebaseOnValue("currentGame", gameID => {
+        let init = true;
+        SquidlyAPI.firebaseOnValue("currentGame", async  gameID => {
             if (!gameID) {
-                gameManager.goHome(false);
+                await gameManager.goHome(false);
                 console.log("No gameID, going home");
             } else {
-                gameManager.joinGame(gameID, false);
+                await gameManager.joinGame(gameID, false);
                 console.log("Joining game with ID: " + gameID);
             }
+            if (init) window.setLoader(false);
+            init = false;
         })
 
         gameManager.addEventListener("game-join", e => {

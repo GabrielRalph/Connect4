@@ -50,7 +50,9 @@ class GameManager extends SvgPlus {
             await this.joinGame(gameID);
         } else {
             this.mode = "home";
-            window.setLoader(false);
+            if (!window.SquidlyAPI) {
+                window.setLoader(false);
+            }
         }
     }
 
