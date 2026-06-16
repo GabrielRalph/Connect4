@@ -1,0 +1,148 @@
+:root {
+    --aspect-ratio: 1.04;
+    --iw: 0.20;
+    --ih: 0.25;
+    --pad-ratio: 0.07;
+    --rw: calc((var(--iw) - 1) / (var(--pad-ratio) - 1));
+    --gap: 4px;
+}
+game-manager[mode="home"] .screen.home,
+game-manager[mode="game"] .screen.game {
+    display: flex;
+}
+
+.screen,
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+.background {
+    z-index: -1;
+}
+
+.background cloud-background {
+    width: 100vw;
+    height: 100vh;
+}
+
+
+.screen {
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    display: none;
+}
+
+
+
+.screen.home .row {
+    display: flex;
+    gap: 4px;
+}
+.screen.home h1 {
+    color: #1c5bc9; 
+    text-shadow: 2px 2px #c2eaff;
+}
+
+
+
+.button > * {
+    z-index: 10;
+}
+
+.button {
+    width: calc(20vw - 6 * var(--gap) / 5);
+    height: calc(25vh - 5 * var(--gap) / 4);
+    border: 2px solid #0c3aa0;
+    background: #2769ef;
+    color: white;
+    font-size: 2.3vw;
+    font-weight: bold;
+    text-shadow: 2px 2px #0c3aa0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3vmin;
+    position: relative;
+    transition: 0.1s ease-out transform;
+}
+
+.button::after {
+    content:  " ";
+    position: absolute;
+    margin: 0.75vmin;
+    border-radius: 2.25vmin;
+    display: block;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    border: 2px solid #0c3aa0;
+    background: #1c5bc9;
+    cursor: pointer;
+
+}
+
+.button:hover,
+.button[hover] {
+    text-shadow: 0px 0px 10px #fafbff92;
+    background-color: #4582fc;
+}
+
+.button:active,
+.button[active] {
+    transform:scale(0.98);
+}
+
+.game .button {
+    position: absolute;
+    top: var(--gap);
+    left: var(--gap);
+}
+[squidly] .game .button {
+    top: calc(4px + 25vh);
+}
+#main-board {
+    transition: 0.4s ease-out transform;
+}
+
+connect-4-game {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width:  calc( var(--rw) * 100vw );
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+connect-4-game svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+
+access-button.slot {
+    width: 100%;
+    height: 100%;
+}
+
+access-button.slot:hover::after,
+access-button.slot[hover]::after {
+    content:  " ";
+    width:  100%;
+    display: block;
+    height: 100%;
+    background-color: rgb(255 255 255 / 17%);
+    border-radius: 100em;
+    border: 2px solid #0c3aa0;
+    box-sizing: border-box;
+}

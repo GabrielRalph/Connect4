@@ -19,88 +19,66 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        
+    }
+
+    body {
+ 
+        margin: 0;
+        background: radial-gradient(circle at bottom, #ffd20024, #ba4e4e00), linear-gradient(180deg, #c2eaff, #edf9ff);
+        width: 100vw;
+        height: 100vh;
+        font-family: system-ui, sans-serif;
     }
 
     body[loaded] .loading {
         display: none;
     }
-
-    
     </style>
+
     <script>
-        window.setLoader = (bool) => document.body.setAttribute("loaded", bool);
+        window.setLoader = (bool) => document.body.toggleAttribute("loaded", !bool);
     </script>
+
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class = "bg">
+
+    <div class = "background">
         <cloud-background ymin = "0" ymax = ".2">
             <img src ="assets/cloud1.png">
             <img src ="assets/cloud2.png">
             <img src ="assets/cloud3.png">
         </cloud-background>
     </div>
-    <connect-4-game game-id="multiplayer/005"></connect-4-game>
+
+    <game-manager id = "game-manager"></game-manager>
+
     <div class = "loading">
         LOADING
     </div>
 </body>
+
 <script type = "module">
-    import "./connect-4-game.js";
-    import "./cloud-bg.js";
-</script>
-<style>
-    body {
-        margin: 0;
-        background: radial-gradient(circle at bottom, #ffd20024, #ba4e4e00), linear-gradient(180deg, #c2eaff, #edf9ff);
-    }
+    import "./index.js";
+    const gameManager = document.getElementById("game-manager");
+    await gameManager.load();
+    if (window.SquidlyAPI) {
+        SquidlyAPI.firebaseOnValue("currentGame", gameID => {
+            if (!gameID) {
+                gameManager.goHome(false);
+                console.log("No gameID, going home");
+            } else {
+                gameManager.joinGame(gameID, false);
+                console.log("Joining game with ID: " + gameID);
+            }
+        })
 
-    .bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: -1;
-    }
-
-    cloud-background {
-        width: 100vw;
-        height: 100vh;
-    }
-    #main-board {
-        transition: 0.4s ease-out transform;
+        gameManager.addEventListener("game-join", e => {
+            SquidlyAPI.firebaseSet("currentGame", e.detail.gameID);
+        })
+        document.body.toggleAttribute("squidly", true);
     }
 
     
-
-    connect-4-game {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
-    }
-    svg {
-        max-width: 100vw;
-        max-height: 100vh;
-    }
-
-    access-button {
-        position: relative;
-    }
-
-    access-button:hover::after,
-    access-button[hover]::after {
-        content:  " ";
-        width:  100%;
-        display: block;
-        height: 100%;
-        background-color: rgb(255 255 255 / 17%);
-        border-radius: 100em;
-        border: 2px solid #0c3aa0;
-        box-sizing: border-box;
-    }
-</style>
+</script>
 </html>

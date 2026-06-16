@@ -78,6 +78,9 @@ const AssetLibrary = {
     },
     border: {
         url: new URL('./assets/border.svg', import.meta.url),
+    },
+    winnerPanel: {
+        url: new URL('./assets/winner-board.svg', import.meta.url),
     }
 }
 
@@ -330,10 +333,71 @@ class Counter extends SvgPlus {
     }
 }
 
+class WinnerPanel extends SvgPlus {
+    constructor(winnerPanelAsset, counterSize) {
+        super('g')
+        this.class = "winner-panel";
+        this.innerHTML = winnerPanelAsset.svg.innerHTML;
+        let [bourdGroup, podiumGroup, rect] = [...this.children];
+        this.messageContainer = this.createChild("foreignObject", {
+            x: rect.getAttribute("x"),
+            y: rect.getAttribute("y"),
+            width: rect.getAttribute("width"),
+            height: rect.getAttribute("height")
+        }).createChild("div", {
+            styles: {
+                display: "flex",
+                "flex-direction": "column",
+                "align-items": "center",
+                "justify-content": "center",
+                width: "100%",
+                height: "100%",
+                color: "white"
+            }
+        });
 
+        let positions = [...podiumGroup.children].slice(1, 3).map(el => {
+            let v = new Vector(Number(el.getAttribute("cx")), Number(el.getAttribute("cy")))
+            el.remove();
+            return v;
+        });
+        podiumGroup = new SvgPlus(podiumGroup);
+        this.podiumPositions = positions;
+        this.podiugmGroup = podiumGroup.createChild("g");
+        this.counterSize = counterSize;
+        
+        this.winner = "red";
+    }
+
+    set message (val) {
+        if (typeof val === "string") {
+            this.messageContainer.innerHTML = `<h1>${val}</h1>`;
+        } else if (val instanceof HTMLElement) {
+            this.messageContainer.innerHTML = "";
+            this.messageContainer.appendChild(val);
+        }
+    }
+
+    set winner(val) {
+        this.podiugmGroup.innerHTML = "";
+        let scale = 0.9;
+        this.createChild("use", {
+            href: `#${val == "red" ? "yellow" : "red"}`,
+            x: (this.podiumPositions[0].x - this.counterSize.x / 2) / scale,
+            y: (this.podiumPositions[0].y - this.counterSize.y / 2) / scale,
+            transform: `scale(${scale})`
+        });
+        this.createChild("use", {
+            href: `#${val}`,
+            x: this.podiumPositions[1].x - this.counterSize.x / 2,
+            y: this.podiumPositions[1].y - this.counterSize.y / 2,
+        });
+    }
+}
 class ColumnSlot extends AccessButton {
     constructor(column) {
         super("aaa-column-slot");
+        this.class = "slot";
         this.column = column;
         this.styles = {width: "100%", height: "100%", display: "block"};
         this.addEventListener("access-click", (e) => {
@@ -380,6 +444,16 @@ class Connect4SVGBoard extends SvgPlus {
             });
             this.#accessButtons.push(fo.createChild(ColumnSlot, {}, i));
         }
+        let wX = (assets.cellSize.x * assets.cols - assets.winnerPanel.bbox.size.x) / 2;
+        let wY = this.svgVBox.pos.y + 10;
+        this.winnerPanel = this.createChild(WinnerPanel, {
+            transform: `translate(${wX}, ${wY})`,
+            opacity: 0,
+            styles: {
+                transition: "0.4s ease-out opacity",
+                "pointer-events": "none"
+            }
+        }, assets.winnerPanel, assets.red.bbox.size);
     }
 
     get highlightedSlot() {
@@ -440,7 +514,7 @@ class Connect4SVGBoard extends SvgPlus {
     /**
      * @param {{winner: number, pieces: [[number, number]]}} winInfo
      */
-    winAnimation(winInfo) {
+    async winAnimation(winInfo) {
         let pos2counter = {};
         for (let c of this.#dropCounters) {
             pos2counter[`${c.row},${c.column}`] = c;
@@ -451,10 +525,16 @@ class Connect4SVGBoard extends SvgPlus {
                 c.highlight = true;
             }
         }
+
+        await new Promise(r => setTimeout(r, 1000));
+        this.winnerPanel.styles = {opacity: 1}
+        this.winnerPanel.winner = winInfo.winner == 1 ? "yellow" : "red";
+        this.winnerPanel.message = `Player ${winInfo.winner == 1 ? "Yellow" : "Red"} Wins!`;
     }
 
     async emptyTrayAnimation() {
         this.mainBoard.styles = {transform: "translateY(-80px)"}
+        this.winnerPanel.styles = {opacity: 0}
         let dropCounters = [...this.#dropCounters]
         this.#dropCounters = [];
         await new Promise(r => setTimeout(r, 300));
@@ -473,10 +553,9 @@ class Connect4SVGBoard extends SvgPlus {
         );
         this.mainBoard.styles = {transform: "translateY(0)"}
         await new Promise(r => setTimeout(r, 400));
-
     }   
 
-    #animate() {
+    #animate(dt) {
         let counters = [...this.querySelectorAll('[counter]')];
         for (let c of counters) {
             if (c.effectUpdate instanceof Function) {
@@ -486,13 +565,13 @@ class Connect4SVGBoard extends SvgPlus {
                 if (c.onUpdate instanceof Function) {
                     c.onUpdate();
                 }
-                c.velocity = c.velocity.add(c.acc)
-                let nPos = c.pos.add(c.velocity);
+                c.velocity = c.velocity.add(c.acc.mul(dt));
+                let nPos = c.pos.add(c.velocity.mul(dt));
                 let nFilled = this.#columns[c.column];
                 if (c.isDrop) {
                     if (c.pos.y > c.expectedRow) {
                         nPos.y = c.expectedRow;
-                        if (c.velocity.norm() > 0.01) {
+                        if (c.velocity.norm() > 0.01 * dt) {
                             c.velocity = c.velocity.mul(this.restitution)
                         } else {
                             c.velocity = new Vector(0, 0);
@@ -526,7 +605,7 @@ class Connect4SVGBoard extends SvgPlus {
         let animate = (time) => {
             let delta = time - lastTime;
             lastTime = time;
-            this.#animate(delta);
+            this.#animate(Math.min(delta / 10, 3));
             requestAnimationFrame(animate)
         }
         requestAnimationFrame(animate)

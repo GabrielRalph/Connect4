@@ -9,7 +9,7 @@ const Player2Color = {
     0: "red",
     1: "yellow",
 }
-class Connect4Game extends SvgPlus {
+export class Connect4Game extends SvgPlus {
     #cursor = null;
     #mousePos = new Vector(0, 0);
 
@@ -21,7 +21,7 @@ class Connect4Game extends SvgPlus {
 
     constructor(el) {
         super(el);
-        this.load();
+        this._loadingPromise = this.load();
     }
 
     getCursorTarget() {
@@ -38,6 +38,9 @@ class Connect4Game extends SvgPlus {
     }
 
     async load() {
+        if (this._loadingPromise) {
+            return this._loadingPromise;
+        }
         this.innerHTML = "";
 
         /**
@@ -46,6 +49,8 @@ class Connect4Game extends SvgPlus {
         const board = await Connect4SVGBoard.loadAndMakeBoard(ROWS, COLS);
         this.#board = board;
         this.appendChild(board);
+
+
 
         this.addEventListener("mousemove", (e) => {
             this.#mousePos = new Vector(e.clientX, e.clientY);
@@ -85,9 +90,9 @@ class Connect4Game extends SvgPlus {
         })
 
         
-
-        await this.startGame(this.getAttribute("game-id") || "connect4_001", true);
-        window.setLoader(false);
+        if (this.getAttribute("game-id")) {
+            await this.startGame(this.getAttribute("game-id") || "connect4_001", true);
+        }
     }
 
     #place(column, player, imediate = false) {
@@ -95,6 +100,9 @@ class Connect4Game extends SvgPlus {
         this.#board.dropCounter(column, color, imediate)
     }
 
+    async emptyBoard() {
+        await this.#board.emptyTrayAnimation();
+    }
 
     async startGame(gameID, initial = false) {
         let startProm = Promise.resolve();
@@ -152,5 +160,5 @@ class Connect4Game extends SvgPlus {
     }
 }
 
-SvgPlus.defineHTMLElement(Connect4Game, "connect-4-game")
+// SvgPlus.defineHTMLElement(Connect4Game, "connect-4-game")
 

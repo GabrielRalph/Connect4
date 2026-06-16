@@ -183,14 +183,14 @@ export class Connect4Database {
         // Check for wins by using regex to find 4 in a row in the grid when 
         // flattened into a string, and then mapping those matches back to 
         // the grid to find the winning pieces
+        let str = grid.map(r=> r.map(c => c.pchar).join("")).join("|");
+        let offset = grid.flatMap((r,i) => new Array(r.length+1).fill(i));
         grid = grid.flat();
-        let str = grid.map(c=> c.pchar).join("");
         console.log(str)
         const {matchRegexs} = this;
-        console.log(matchRegexs)
         let wins = matchRegexs.flatMap(rgx => 
             [...str.matchAll(rgx)].map(match => 
-                match.indices.slice(1, 5).map(i => grid[i[0]])
+                match.indices.slice(1, 5).map(i => grid[i[0] - offset[i[0]]])
             )
         ).sort((a, b) => 
             Math.max(...a.map(c => c.i)) - Math.max(...b.map(c => c.i))
@@ -211,7 +211,7 @@ export class Connect4Database {
             (x) => new RegExp(`(${x})(${x})(${x})(${x})`, "gd"),
             (x) => new RegExp(`(${x}).{${cols}}(${x}).{${cols}}(${x}).{${cols}}(${x})`, "gd"),
             (x) => new RegExp(`(${x}).{${cols+1}}(${x}).{${cols+1}}(${x}).{${cols+1}}(${x})`, "gd"),
-            (x) => new RegExp(`(${x}).{${cols-2}}(${x}).{${cols-2}}(${x}).{${cols-2}}(${x})`, "gd"),
+            (x) => new RegExp(`(${x}).{${cols-1}}(${x}).{${cols-1}}(${x}).{${cols-1}}(${x})`, "gd"),
         ].flatMap(f => [f(0), f(1)])
     }
 
@@ -235,6 +235,12 @@ export class Connect4Database {
 
     get myTurn() {
         return this.#playerID !== null && this.#lastPlayer != FB.getUID();
+    }
+
+    static createNewGameID(mode = "multiplayer") {
+        let id = Date.now().toString(36) + Math.random().toString(36).slice(2)
+        let token = mode + "/GAME-" + id.toUpperCase();
+        return token;
     }
 }
 
