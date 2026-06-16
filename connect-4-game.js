@@ -52,17 +52,15 @@ class Connect4Game extends SvgPlus {
         })
 
         this.#board.addEventListener("column-click", (e) => {
-            console.log("Column clicked", e.column)
             if (this.#game && this.#game.myTurn) {
                 this.#game.playMove(e.column);
             }
         })
 
-
         /**
          * Set up cursor
          */
-        this.#cursor = board.addCounter(0, -1.1, "red");
+        this.#cursor = board.addCounter(0, this.#board.cursorYPos, "red");
         this.#cursor.onUpdate = () => {
             const cellPos = this.getCursorTarget();
             this.#cursor.velocity.x = (cellPos - this.#cursor.pos.x) * 0.08;
@@ -125,7 +123,6 @@ class Connect4Game extends SvgPlus {
             this.toggleAttribute("winner", !!winInfo)
             if (winInfo) {
                 this.#cursor.styles = {opacity: 0}
-                console.log("Win info", winInfo)
                 this.#board.winAnimation(winInfo);
             }
         }
@@ -142,7 +139,6 @@ class Connect4Game extends SvgPlus {
             this.toggleAttribute("winner", !!winInfo)
             if (winInfo) {
                 this.#cursor.styles = {opacity: 0}
-                console.log("Win info", winInfo)
                 this.#board.winAnimation(winInfo);
             }
         }

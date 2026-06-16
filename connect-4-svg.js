@@ -136,17 +136,18 @@ async function loadAssets(rows = 6, cols = 7, cellWScale = 1, cellHScale = 1) {
     const ringOffset = cellSize.sub(ring.bbox.size).div(2);
     const counterOffset = cellSize.sub(red.bbox.size).div(2);
 
+    const gap = 10;
  
-    const trayPaddingTop = 10;
+    const trayPaddingTop = gap;
     const trayPaddingSides = 30;
     const trayPaddingBottom = 15;
     const trayBorderRadius = 30;
     const borderPos = border.bbox.size.mul(-0.57, -0.65).add(-trayPaddingSides, cellSize.y * rows);
 
     
-    const extraPaddingSides = border.bbox.width * 0.57 + 10;
-    const extraPaddingBottom = border.bbox.height * 0.321 + 10;
-    const extraPaddingTop = 10 + cellSize.x * 1.2;
+    const extraPaddingSides = border.bbox.width * 0.57 + gap;
+    const extraPaddingBottom = border.bbox.height * 0.321 + gap;
+    const extraPaddingTop = 2 * gap + cellSize.x;
     
     const [borderDefs, borderBack, borderFront] = [...border.svg.children];
     const use = (tag, x, y) => x instanceof Vector ? `<use href="#${tag}" x="${x.x}" y="${x.y}"/>` : `<use href="#${tag}" x="${x}" y="${y}"/>`
@@ -210,8 +211,6 @@ async function loadAssets(rows = 6, cols = 7, cellWScale = 1, cellHScale = 1) {
         <g id = "counter-area">
         
         </g>
-
-
         <rect   fill = "#1d62f1" stroke = "#0b3aa0" stroke-width = "4" 
                 ry = ${trayBorderRadius} rx = ${trayBorderRadius} 
                 x = "${-trayPaddingSides}" y = "${-trayPaddingTop}" 
@@ -249,6 +248,7 @@ async function loadAssets(rows = 6, cols = 7, cellWScale = 1, cellHScale = 1) {
     Res.counterOffset = counterOffset;
     Res.rows = rows;
     Res.cols = cols;
+    Res.cursorYPos = -1 - (gap * 2 / cellSize.y);
     return Res;
 }
 
@@ -394,8 +394,11 @@ class Connect4SVGBoard extends SvgPlus {
     mouseToSVG(...args) {
         let pos = new Vector(...args);
         let [spos, ssize] = this.bbox;
-        let relSVG = pos.sub(spos).div(ssize);
-        let absSVG = relSVG.mul(this.svgVBox.size).add(this.svgVBox.pos);
+        let absSVG = new Vector(0, 0);
+        if (ssize.x !== 0 && ssize.y !== 0) {
+            let relSVG = pos.sub(spos).div(ssize);
+            absSVG = relSVG.mul(this.svgVBox.size).add(this.svgVBox.pos);
+        }
         return absSVG
     }
 
@@ -442,11 +445,8 @@ class Connect4SVGBoard extends SvgPlus {
         for (let c of this.#dropCounters) {
             pos2counter[`${c.row},${c.column}`] = c;
         }
-        console.log(winInfo.pieces, pos2counter)
         for (let [row, col] of winInfo.pieces) { 
-
             let c = pos2counter[`${row},${col}`]
-            console.log("Winning piece", c)
             if (c) {
                 c.highlight = true;
             }
@@ -510,6 +510,10 @@ class Connect4SVGBoard extends SvgPlus {
     }
     get cols() {
         return this.#assets.cols;
+    }
+
+    get cursorYPos() {
+        return this.#assets.cursorYPos;
     }
 
     async waitForAllAnimations() {

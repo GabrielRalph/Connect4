@@ -65,15 +65,34 @@ export class Connect4Database {
     }
 
 
+    #parseState(newState) {
+        if (typeof newState === "number") {
+            console.warn("State should be a string. Converting number to string.");
+            newState = newState + "";
+        } else if (typeof newState !== "string") {
+            newState = "";
+        }
+        return newState;
+    }
+
+
     async connect() {
         const iStateSC = await get("connect-4", this.gameID)
         const uid = FB.getUID()
         if ( iStateSC != null ) {
             let p1 = iStateSC.player1;
             let p2 = iStateSC.player2;
-            this.#state = (iStateSC.state?.sequence + "") || "";
+
+            this.#state = this.#parseState(iStateSC.state?.sequence);
             this.#lastPlayer = iStateSC.state?.lastPlayer || null;
-            if ( (!p1) || (!p2) ) {
+            console.log(`Initial state: ${this.#state}, \nplayer1: ${p1} ${p1 == uid ? "[me]" : ""}, \nplayer2: ${p2} ${p2 == uid ? "[me]" : ""}`)
+
+            // already a player in this game
+            if (uid == p1 || uid == p2) {
+                this.#playerID = uid == p1 ? 0 : 1
+
+            // One (or more) slot/s is open, join as player
+            } else if ( (!p1) || (!p2) ) {
                 if (!p1) {
                     await set("connect-4", this.gameID, "player1", uid);
                     this.#playerID = 0
@@ -81,11 +100,12 @@ export class Connect4Database {
                     await set("connect-4", this.gameID, "player2", uid);
                     this.#playerID = 1
                 }
+            // Game is full, join as spectator
             } else if (!((uid == p1) || (uid == p2))) {
-                throw new Error("You are not a player of this game")
-            } else {
-                this.#playerID = uid == p1 ? 0 : 1
+                console.warn(`Game ${this.gameID} is full. Joining as spectator.`)
+                this.#playerID = null;
             }
+           
         } else {
             await set("connect-4", this.gameID, "player1", uid);
             this.#playerID = 0;
@@ -94,7 +114,7 @@ export class Connect4Database {
         this.#listener = FB.onValue(ref("connect-4", this.gameID, "state"), (sc) => {
             const sState = sc.val();
             let seq = sState ? sState.sequence : "";
-            const state = typeof seq === "number" ? seq + "" : seq || "";
+            const state = this.#parseState(seq);
             const lastPlayer = sState ? (sState.lastPlayer || null) : null;
             this.#lastPlayer = lastPlayer
             console.log("State changed", state, lastPlayer)
@@ -165,13 +185,17 @@ export class Connect4Database {
         // the grid to find the winning pieces
         grid = grid.flat();
         let str = grid.map(c=> c.pchar).join("");
-        let wins = this.matchRegexs.flatMap(rgx => 
+        console.log(str)
+        const {matchRegexs} = this;
+        console.log(matchRegexs)
+        let wins = matchRegexs.flatMap(rgx => 
             [...str.matchAll(rgx)].map(match => 
                 match.indices.slice(1, 5).map(i => grid[i[0]])
             )
         ).sort((a, b) => 
             Math.max(...a.map(c => c.i)) - Math.max(...b.map(c => c.i))
         )
+        console.log(wins);
 
         let win = wins.length > 0 ? {
             winner: wins[0][0].player,
@@ -187,7 +211,7 @@ export class Connect4Database {
             (x) => new RegExp(`(${x})(${x})(${x})(${x})`, "gd"),
             (x) => new RegExp(`(${x}).{${cols}}(${x}).{${cols}}(${x}).{${cols}}(${x})`, "gd"),
             (x) => new RegExp(`(${x}).{${cols+1}}(${x}).{${cols+1}}(${x}).{${cols+1}}(${x})`, "gd"),
-            (x) => new RegExp(`(${x}).{${cols-1}}(${x}).{${cols-1}}(${x}).{${cols-1}}(${x})`, "gd"),
+            (x) => new RegExp(`(${x}).{${cols-2}}(${x}).{${cols-2}}(${x}).{${cols-2}}(${x})`, "gd"),
         ].flatMap(f => [f(0), f(1)])
     }
 
@@ -210,7 +234,7 @@ export class Connect4Database {
     get gameID() {return this.#gameID}
 
     get myTurn() {
-        return this.#lastPlayer != FB.getUID();
+        return this.#playerID !== null && this.#lastPlayer != FB.getUID();
     }
 }
 

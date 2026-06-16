@@ -19,37 +19,61 @@
         align-items: center;
         justify-content: center;
         text-align: center;
+        
     }
 
     body[loaded] .loading {
         display: none;
     }
+
+    
     </style>
     <script>
         window.setLoader = (bool) => document.body.setAttribute("loaded", bool);
     </script>
 </head>
 <body>
-    <connect-4-game game-id="connect4_001"></connect-4-game>
+    <div class = "bg">
+        <cloud-background ymin = "0" ymax = ".2">
+            <img src ="assets/cloud1.png">
+            <img src ="assets/cloud2.png">
+            <img src ="assets/cloud3.png">
+        </cloud-background>
+    </div>
+    <connect-4-game game-id="multiplayer/005"></connect-4-game>
     <div class = "loading">
         LOADING
     </div>
 </body>
-<script src="connect-4-game.js" type = "module"></script>
+<script type = "module">
+    import "./connect-4-game.js";
+    import "./cloud-bg.js";
+</script>
 <style>
     body {
         margin: 0;
+        background: radial-gradient(circle at bottom, #ffd20024, #ba4e4e00), linear-gradient(180deg, #c2eaff, #edf9ff);
     }
 
-    @keyframes counter-win-pop {
-      0%   { transform: scale(1); }
-      35%  { transform: scale(1.08); }
-      100% { transform: scale(1.02); }
+    .bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
     }
 
+    cloud-background {
+        width: 100vw;
+        height: 100vh;
+    }
     #main-board {
         transition: 0.4s ease-out transform;
     }
+
+    
+
     connect-4-game {
         width: 100vw;
         height: 100vh;
