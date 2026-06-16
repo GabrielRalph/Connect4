@@ -26,7 +26,7 @@ class GameManager extends SvgPlus {
             }
         }}).createChild("div", {content: "Two Player"});
 
-        r.createChild("access-button", {class: "button", id: "single-player", events: {
+        r.createChild("access-button", {class: "button", disabled: true, id: "single-player", events: {
             "access-click": (e) => {
                 e.waitFor(this.createAndJoinGame("multiplayer"));
             }

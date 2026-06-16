@@ -71,6 +71,11 @@ game-manager[mode="game"] .screen.game {
     transition: 0.1s ease-out transform;
 }
 
+.button[disabled] {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 .button::after {
     content:  " ";
     position: absolute;
