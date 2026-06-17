@@ -614,9 +614,9 @@ class Connect4SVGBoard extends SvgPlus {
                 let nPos = c.pos.add(c.velocity.mul(dt));
                 let nFilled = this.#columns[c.column];
                 if (c.isDrop) {
-                    if (c.pos.y > c.expectedRow) {
+                    if (nPos.y > c.expectedRow) {
                         nPos.y = c.expectedRow;
-                        if (c.velocity.norm() > dt) {
+                        if (c.velocity.norm() > dt * 125) {
                             c.velocity = c.velocity.mul(this.restitution)
                         } else {
                             c.velocity = new Vector(0, 0);
@@ -650,7 +650,12 @@ class Connect4SVGBoard extends SvgPlus {
         let animate = (time) => {
             let delta = (time - lastTime) / 1000;
             lastTime = time;
-            let dt = Math.min(delta, 1 / MIN_FRAME_RATE);
+
+            let minDelta = 1 / MIN_FRAME_RATE;
+            if (delta > minDelta) {
+                console.warn(`Frame took ${delta.toFixed(3)}s which is below the minimum frame rate of ${MIN_FRAME_RATE}fps. Consider optimizing your game or increasing the minimum frame rate.`);
+            }
+            let dt = Math.min(delta, minDelta);
             this.#animate(dt);
             requestAnimationFrame(animate)
         }
