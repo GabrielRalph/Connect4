@@ -74,6 +74,9 @@ const AssetLibrary = {
     ring: {
         url: new URL('./assets/i_ring.svg', import.meta.url)
     },
+    ringBehind: {
+        url: new URL('./assets/i_ring-behind.svg', import.meta.url),
+    },
     red: {
         url: new URL('./assets/i_red.svg', import.meta.url),
     },
@@ -149,7 +152,7 @@ async function loadAssets(rows = 6, cols = 7, cellWScale = 1, cellHScale = 1) {
         };
     }));
 
-    const {ring, red, yellow, border} = Res;
+    const {ring, red, yellow, border, ringBehind} = Res;
     
     const cellSize = red.bbox.size.mul(cellWScale, cellHScale);
     const ringOffset = cellSize.sub(ring.bbox.size).div(2);
@@ -179,6 +182,7 @@ async function loadAssets(rows = 6, cols = 7, cellWScale = 1, cellHScale = 1) {
         <g id="yellow">${yellow.svg.innerHTML}</g>
         <g id="border-back">${borderBack.innerHTML}</g>
         <g id="border-front">${borderFront.innerHTML}</g>
+        <g id="ring-behind">${ringBehind.svg.innerHTML}</g>
         <mask id="cut-out-holes">
             <rect x = "-50%" y = "-50%" width="200%" height="200%" fill="white"/>
             ${
@@ -227,6 +231,14 @@ async function loadAssets(rows = 6, cols = 7, cellWScale = 1, cellHScale = 1) {
     </g>
     
     <g id = "main-board">
+        ${
+            new Array(rows).fill(0).map((_, i) => 
+                new Array(cols).fill(0).map((_, j) => 
+                    use('ring-behind', cellSize.mul(j, i).add(ringOffset))
+                ).join('')
+            ).join('')
+        }
+
         <g id = "counter-area">
         
         </g>
