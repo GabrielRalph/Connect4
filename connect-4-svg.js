@@ -438,6 +438,7 @@ class Connect4SVGBoard extends SvgPlus {
     #accessButtons = [];
     #dropCounters = [];
     #averageDT = 0.010;
+    #emptyTrayPromise = null;
     constructor(assets) {
         super("svg");
         this.svgVBox = assets.board.bbox;
@@ -565,7 +566,7 @@ class Connect4SVGBoard extends SvgPlus {
     }
 
     async emptyTrayAnimation() {
-        if (this.#dropCounters.length > 0) {
+        let drop = async () => {
             this.mainBoard.styles = {transform: "translateY(-80px)"}
             this.winnerPanel.styles = {opacity: 0}
             let dropCounters = [...this.#dropCounters]
@@ -589,6 +590,13 @@ class Connect4SVGBoard extends SvgPlus {
             this.mainBoard.styles = {transform: "translateY(0)"}
             await new Promise(r => setTimeout(r, 400));
         }
+        if (this.emptyTrayPromise) {
+            await this.emptyTrayPromise;
+        } else if (this.#dropCounters.length > 0) {
+            this.emptyTrayPromise = drop();
+            await this.emptyTrayPromise;
+            this.emptyTrayPromise = null;
+        }   
     }   
 
     #animate(dt) {
