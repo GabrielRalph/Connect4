@@ -2,7 +2,7 @@ import { set } from "./fb.js";
 import { AccessButton, AccessEvent, SvgPlus, Vector } from "./utils.js"
 
 const MIN_FRAME_RATE = 30;
-const TIME_TO_DROP_SOUND = 200;
+const TIME_TO_DROP_SOUND = 250;
 
 class BBox {
     #pos = new Vector(0, 0);
