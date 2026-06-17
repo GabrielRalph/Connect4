@@ -107,6 +107,7 @@ game-manager[mode="game"] .screen.game {
     position: absolute;
     top: var(--gap);
     left: var(--gap);
+    z-index: 100;
 }
 [squidly] .game .button {
     top: calc(4px + 25vh);

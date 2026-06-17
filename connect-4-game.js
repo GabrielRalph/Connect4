@@ -5,6 +5,7 @@ import * as FB from "./fb.js"
 
 const ROWS = 6;
 const COLS = 7;
+
 const Player2Color = {
     0: "red",
     1: "yellow",
@@ -68,7 +69,7 @@ export class Connect4Game extends SvgPlus {
         this.#cursor = board.addCounter(0, this.#board.cursorYPos, "red");
         this.#cursor.onUpdate = () => {
             const cellPos = this.getCursorTarget();
-            this.#cursor.velocity.x = (cellPos - this.#cursor.pos.x) * 0.08;
+            this.#cursor.velocity.x = (cellPos - this.#cursor.pos.x) * 8;
         }
         this.#cursor.inMotion = true;
 

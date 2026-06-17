@@ -242,7 +242,7 @@ export class MultiplayerC4Database extends C4DBInterface {
     #listener = null;
     #players = {};
 
-    async connect() {
+    async #connectPre() {
         const iStateSC = await get("connect-4", this.gameID)
         const uid = this.uid
 
@@ -278,6 +278,24 @@ export class MultiplayerC4Database extends C4DBInterface {
             this.log(`Creating game ${this.gameID}\n\tPlayer 1: ${uid}`);
             await set("connect-4", this.gameID, "player1", uid);
             this.#players[uid] = 0;
+        }
+
+        return [state, lastPlayer]
+    }
+
+    async connect() {
+
+        let error = true;
+        let state, lastPlayer;
+        while (error) {
+            try {
+                [state, lastPlayer] = await this.#connectPre();
+                error = false;
+            } catch (e) {
+                this.#players = {};
+                await new Promise(r => setTimeout(r, 500));
+                error = true;
+            }
         }
 
         this.updateState(this.state, this.lastPlayer, true);

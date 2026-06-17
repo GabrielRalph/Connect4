@@ -1,4 +1,8 @@
+import { set } from "./fb.js";
 import { AccessButton, AccessEvent, SvgPlus, Vector } from "./utils.js"
+
+const MIN_FRAME_RATE = 30;
+const TIME_TO_DROP_SOUND = 200;
 
 class BBox {
     #pos = new Vector(0, 0);
@@ -82,6 +86,18 @@ const AssetLibrary = {
     winnerPanel: {
         url: new URL('./assets/winner-board.svg', import.meta.url),
     }
+}
+
+const soundQueue = {};
+function playSound(name) {
+    soundQueue[name] = true;
+    setTimeout(() => {
+        if (soundQueue[name]) {
+            let audio = new Audio(new URL(`./assets/${name}.mp3`, import.meta.url));
+            audio.play();
+            delete soundQueue[name];
+        }
+    }, 50);
 }
 
 function randomizeIDs(svg) {
@@ -415,12 +431,13 @@ class ColumnSlot extends AccessButton {
 
 
 class Connect4SVGBoard extends SvgPlus {
-    acceleration = new Vector(0, 0.004);
-    restitution = new Vector(0, -0.5);
+    acceleration = new Vector(0, 80);
+    restitution = new Vector(0, -0.4);
     #columns = [];
     #assets = null;
     #accessButtons = [];
     #dropCounters = [];
+    #averageDT = 0.010;
     constructor(assets) {
         super("svg");
         this.svgVBox = assets.board.bbox;
@@ -467,13 +484,11 @@ class Connect4SVGBoard extends SvgPlus {
 
     mouseToSVG(...args) {
         let pos = new Vector(...args);
-        let [spos, ssize] = this.bbox;
-        let absSVG = new Vector(0, 0);
-        if (ssize.x !== 0 && ssize.y !== 0) {
-            let relSVG = pos.sub(spos).div(ssize);
-            absSVG = relSVG.mul(this.svgVBox.size).add(this.svgVBox.pos);
-        }
-        return absSVG
+        const point = new DOMPoint(pos.x, pos.y);
+        const ctm = this.getScreenCTM();
+        if (!ctm) return new Vector(0, 0);
+        const svgPoint = point.matrixTransform(ctm.inverse());
+        return new Vector(svgPoint.x, svgPoint.y);
     }
 
     mouseToCell(...args) {
@@ -500,6 +515,23 @@ class Connect4SVGBoard extends SvgPlus {
             c.acc = this.acceleration.clone();
             c.inMotion = true;
             c.isDrop = true;
+            let soundPlayed = false;
+            c.onUpdate = () => {
+                if (!soundPlayed) {
+                    // v = at + v0
+                    // y = 0.5at^2 + v0t + y0
+                    // 0 = 0.5at^2 + v0t - Dx
+                    // t = (-v0 + sqrt(v0^2 - 2aDx)) / a
+                    let Dx = c.expectedRow - c.pos.y;
+                    let v0 = c.velocity.y;
+                    let a = c.acc.y;
+                    let timeToDrop = 1000 * (-v0 + Math.sqrt(v0**2 + 2*a*Dx)) / a
+                    if (timeToDrop < TIME_TO_DROP_SOUND) {
+                        playSound("drop");
+                        soundPlayed = true;
+                    }
+                }
+            }
         }
         this.#dropCounters.push(c);
     }
@@ -525,8 +557,8 @@ class Connect4SVGBoard extends SvgPlus {
                 c.highlight = true;
             }
         }
-
-        await new Promise(r => setTimeout(r, 1000));
+        playSound("winner");
+        await new Promise(r => setTimeout(r, 2000));
         this.winnerPanel.styles = {opacity: 1}
         this.winnerPanel.winner = winInfo.winner == 1 ? "yellow" : "red";
         this.winnerPanel.message = `Player ${winInfo.winner == 1 ? "Yellow" : "Red"} Wins!`;
@@ -538,10 +570,11 @@ class Connect4SVGBoard extends SvgPlus {
         let dropCounters = [...this.#dropCounters]
         this.#dropCounters = [];
         this.#columns = new Array(this.#assets.cols).fill(0);
+        playSound("empty");
         await new Promise(r => setTimeout(r, 300));
         await Promise.all(
             dropCounters.map(c => new Promise(r => {
-                c.acc = this.acceleration.clone().add(0, Math.random()*0.001)
+                c.acc = this.acceleration.clone().add(0, Math.random()*0.1)
                 c.inMotion = true;
                 c.isDrop = false;
                 c.onUpdate = () => {
@@ -557,6 +590,7 @@ class Connect4SVGBoard extends SvgPlus {
     }   
 
     #animate(dt) {
+        this.#averageDT = this.#averageDT * 0.9 + dt * 0.1;
         let counters = [...this.querySelectorAll('[counter]')];
         for (let c of counters) {
             if (c.effectUpdate instanceof Function) {
@@ -572,7 +606,7 @@ class Connect4SVGBoard extends SvgPlus {
                 if (c.isDrop) {
                     if (c.pos.y > c.expectedRow) {
                         nPos.y = c.expectedRow;
-                        if (c.velocity.norm() > 0.01 * dt) {
+                        if (c.velocity.norm() > dt) {
                             c.velocity = c.velocity.mul(this.restitution)
                         } else {
                             c.velocity = new Vector(0, 0);
@@ -604,9 +638,10 @@ class Connect4SVGBoard extends SvgPlus {
     start() {
         let lastTime = 0;
         let animate = (time) => {
-            let delta = time - lastTime;
+            let delta = (time - lastTime) / 1000;
             lastTime = time;
-            this.#animate(Math.min(delta / 10, 3));
+            let dt = Math.min(delta, 1 / MIN_FRAME_RATE);
+            this.#animate(dt);
             requestAnimationFrame(animate)
         }
         requestAnimationFrame(animate)
