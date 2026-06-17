@@ -1,4 +1,4 @@
-import { Connect4Database } from "./connect-4-database.js"
+import { C4DBInterface, makeConnect4Database } from "./connect-4-database.js"
 import { Connect4SVGBoard } from "./connect-4-svg.js";
 import { SvgPlus, Vector } from "./utils.js";
 import * as FB from "./fb.js"
@@ -16,7 +16,7 @@ export class Connect4Game extends SvgPlus {
     /** @type {Connect4SVGBoard?} */
     #board = null;
 
-    /** @type {Connect4Database?} */
+    /** @type {C4DBInterface?} */
     #game = null;
 
     constructor(el) {
@@ -118,7 +118,7 @@ export class Connect4Game extends SvgPlus {
             this.#game.dispose()
         }
 
-        let game = new Connect4Database(gameID);
+        let game = makeConnect4Database(gameID);
         this.#game = game;
 
         game.onMoves = (moves) => {
@@ -151,12 +151,13 @@ export class Connect4Game extends SvgPlus {
             }
         }
 
+        game.onPlayersUpdated = () => {
+            const idx = game.getPlayerIndex(game.uid);
+            this.#cursor.color = Player2Color[game.getPlayerIndex(game.uid)] || "red";
+        }
+
         await game.connect();
         await startProm;
-
-        this.#cursor.color = Player2Color[game.playerID] || "red";
-        game.onFullChange(game.moves);
-
     }
 }
 

@@ -2,7 +2,7 @@ import "./connect-4-game.js";
 import "./cloud-bg.js";
 import { SvgPlus } from "./utils.js";
 import { Connect4Game } from "./connect-4-game.js";
-import { Connect4Database } from "./connect-4-database.js";
+import { createNewGameID } from "./connect-4-database.js";
 
 class GameManager extends SvgPlus {
     
@@ -26,9 +26,9 @@ class GameManager extends SvgPlus {
             }
         }}).createChild("div", {content: "Two Player"});
 
-        r.createChild("access-button", {class: "button", disabled: true, id: "single-player", events: {
+        r.createChild("access-button", {class: "button", id: "single-player", events: {
             "access-click": (e) => {
-                e.waitFor(this.createAndJoinGame("multiplayer"));
+                e.waitFor(this.createAndJoinGame("singleplayer"));
             }
         }}).createChild("div", {content: "Single Player"});
 
@@ -80,7 +80,7 @@ class GameManager extends SvgPlus {
     }
 
     async createAndJoinGame(mode) {
-        let token = Connect4Database.createNewGameID(mode);
+        let token = createNewGameID(mode);
         await this.joinGame(token);
     }
 

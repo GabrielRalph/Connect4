@@ -537,6 +537,7 @@ class Connect4SVGBoard extends SvgPlus {
         this.winnerPanel.styles = {opacity: 0}
         let dropCounters = [...this.#dropCounters]
         this.#dropCounters = [];
+        this.#columns = new Array(this.#assets.cols).fill(0);
         await new Promise(r => setTimeout(r, 300));
         await Promise.all(
             dropCounters.map(c => new Promise(r => {
