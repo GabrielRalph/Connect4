@@ -6,5 +6,5 @@
   "version": "1.0.0",
   "description": "Compete against friends in this classic game of strategy and skill. Drop your pieces and try to connect four in a row before your opponent does!",
   "author": "SquidlyDev",
-  "icon": "./assets/i_red.svg"
+  "icon": "./assets/icon.svg"
 }
