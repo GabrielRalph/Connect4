@@ -565,28 +565,30 @@ class Connect4SVGBoard extends SvgPlus {
     }
 
     async emptyTrayAnimation() {
-        this.mainBoard.styles = {transform: "translateY(-80px)"}
-        this.winnerPanel.styles = {opacity: 0}
-        let dropCounters = [...this.#dropCounters]
-        this.#dropCounters = [];
-        this.#columns = new Array(this.#assets.cols).fill(0);
-        playSound("empty");
-        await new Promise(r => setTimeout(r, 300));
-        await Promise.all(
-            dropCounters.map(c => new Promise(r => {
-                c.acc = this.acceleration.clone().add(0, Math.random()*0.1)
-                c.inMotion = true;
-                c.isDrop = false;
-                c.onUpdate = () => {
-                    if (c.pos.y > this.rows + 3) {
-                        c.remove();
-                        r();
+        if (this.#dropCounters.length > 0) {
+            this.mainBoard.styles = {transform: "translateY(-80px)"}
+            this.winnerPanel.styles = {opacity: 0}
+            let dropCounters = [...this.#dropCounters]
+            this.#dropCounters = [];
+            this.#columns = new Array(this.#assets.cols).fill(0);
+            playSound("empty");
+            await new Promise(r => setTimeout(r, 300));
+            await Promise.all(
+                dropCounters.map(c => new Promise(r => {
+                    c.acc = this.acceleration.clone().add(0, Math.random()*0.1)
+                    c.inMotion = true;
+                    c.isDrop = false;
+                    c.onUpdate = () => {
+                        if (c.pos.y > this.rows + 3) {
+                            c.remove();
+                            r();
+                        }
                     }
-                }
-            }))
-        );
-        this.mainBoard.styles = {transform: "translateY(0)"}
-        await new Promise(r => setTimeout(r, 400));
+                }))
+            );
+            this.mainBoard.styles = {transform: "translateY(0)"}
+            await new Promise(r => setTimeout(r, 400));
+        }
     }   
 
     #animate(dt) {

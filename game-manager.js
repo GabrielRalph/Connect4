@@ -1,6 +1,6 @@
 import "./connect-4-game.js";
 import "./cloud-bg.js";
-import { SvgPlus } from "./utils.js";
+import { AccessButton, SvgPlus } from "./utils.js";
 import { Connect4Game } from "./connect-4-game.js";
 import { createNewGameID } from "./connect-4-database.js";
 
@@ -20,25 +20,25 @@ class GameManager extends SvgPlus {
         home.createChild("h1", {content: "Connect 4"});
 
         let r = home.createChild("div", {class: "row"});
-        r.createChild("access-button", {class: "button", id: "two-player", events: {
+        r.createChild(AccessButton, {class: "button", id: "two-player", events: {
             "access-click": (e) => {
                 e.waitFor(this.createAndJoinGame("multiplayer"));
             }
-        }}).createChild("div", {content: "Two Player"});
+        }}, "aaa-game-choice").createChild("div", {content: "Two Player"});
 
-        r.createChild("access-button", {class: "button", id: "single-player", events: {
+        r.createChild(AccessButton, {class: "button", id: "single-player", events: {
             "access-click": (e) => {
                 e.waitFor(this.createAndJoinGame("singleplayer"));
             }
-        }}).createChild("div", {content: "Single Player"});
+        }}, "aaa-game-choice").createChild("div", {content: "Single Player"});
 
 
         let gameDiv = this.createChild("div", {class: "screen game"});
-        let c = gameDiv.createChild("access-button", {class: "button", events: {
+        let c = gameDiv.createChild(AccessButton, {class: "button", events: {
             "access-click": (e) => {
                 e.waitFor(this.goHome());
             }
-        }}).createChild("div", {content: "Go Home"});
+        }}, "apps").createChild("div", {content: "Go Home"});
         let connect4 = gameDiv.createChild(Connect4Game, {}, "connect-4-game");
         await connect4.load();
 
