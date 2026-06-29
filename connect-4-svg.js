@@ -439,8 +439,11 @@ class ColumnSlot extends AccessButton {
         this.toggleAttribute("hover", val);
         this.isHighlighted = val;
     }
-}
 
+    get size() {
+        return this.clientWidth;
+    }
+}
 
 class Connect4SVGBoard extends SvgPlus {
     acceleration = new Vector(0, 80);
