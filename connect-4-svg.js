@@ -422,6 +422,7 @@ class WinnerPanel extends SvgPlus {
         });
     }
 }
+
 class ColumnSlot extends AccessButton {
     constructor(column) {
         super("aaa-column-slot");
@@ -440,7 +441,7 @@ class ColumnSlot extends AccessButton {
         this.isHighlighted = val;
     }
 
-    get size() {
+    getSize() {
         return this.clientWidth;
     }
 }
