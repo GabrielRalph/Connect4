@@ -665,7 +665,7 @@ class Connect4SVGBoard extends SvgPlus {
 
             let minDelta = 1 / MIN_FRAME_RATE;
             if (delta > minDelta) {
-                console.warn(`Frame took ${delta.toFixed(3)}s which is below the minimum frame rate of ${MIN_FRAME_RATE}fps. Consider optimizing your game or increasing the minimum frame rate.`);
+                // console.warn(`Frame took ${delta.toFixed(3)}s which is below the minimum frame rate of ${MIN_FRAME_RATE}fps. Consider optimizing your game or increasing the minimum frame rate.`);
             }
             let dt = Math.min(delta, minDelta);
             this.#animate(dt);
